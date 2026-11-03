@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Desafio Tech</string>
+    <string name="title_activity_main">Desafio Tech</string>
+    <string name="package_name">br.edu.donaduzzi.desafiotech</string>
+    <string name="custom_url_scheme">br.edu.donaduzzi.desafiotech</string>
+</resources>
