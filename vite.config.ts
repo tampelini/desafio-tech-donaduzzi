@@ -12,7 +12,10 @@ export default defineConfig({
       // nunca no meio de uma partida (ver src/services/pwa.ts).
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['assets/*.svg', 'assets/*.png'],
+      // Idem para os ícones do manifesto: já estão no globPatterns.
+      includeManifestIcons: false,
+      // Os arquivos de public/ já entram pelo globPatterns abaixo; listá-los também em
+      // includeAssets duplica entradas e o Workbox aborta o pré-cache (nada fica offline).
       manifest: {
         name: 'Desafio Tech Donaduzzi',
         short_name: 'Desafio Tech',
