@@ -205,7 +205,7 @@ scripts/       geração de ícones e verificação offline
 
 ## Testes
 
-`npm test` roda 47 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
+`npm test` roda 49 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
 sem duplicatas, embaralhamento preservando a correta, posições variadas, inativas excluídas, anti-repetição),
 pontuação e faixas de mensagem, tempo esgotado, conclusão, reinício por inatividade (partida e tela de cursos),
 persistência no IndexedDB, estatísticas/CSV, PIN e fluxos completos do jogo e do painel administrativo.

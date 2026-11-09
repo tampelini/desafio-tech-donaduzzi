@@ -141,6 +141,33 @@ describe('logotipo com link', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('ao tocar, abre a página em nova aba', async () => {
+    const fake = {} as Window;
+    const open = vi.spyOn(window, 'open').mockReturnValue(fake);
+    await renderLoaded();
+    fireEvent.click(screen.getByRole('link', { name: /conheça os cursos de graduação/ }));
+    await waitFor(() => expect(open).toHaveBeenCalledWith('https://faculdadedonaduzzi.com.br/cursos-de-graduacao/', '_blank'));
+    expect(fake.opener).toBeNull();
+    // O toque no logotipo não inicia o jogo.
+    expect(screen.queryByRole('button', { name: 'COMEÇAR DESAFIO' })).not.toBeInTheDocument();
+    open.mockRestore();
+  });
+
+  it('se a nova aba for bloqueada, abre na mesma aba', async () => {
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    const assign = vi.fn();
+    const original = window.location;
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...original, assign } });
+    try {
+      await renderLoaded();
+      fireEvent.click(screen.getByRole('link', { name: /conheça os cursos de graduação/ }));
+      await waitFor(() => expect(assign).toHaveBeenCalledWith('https://faculdadedonaduzzi.com.br/cursos-de-graduacao/'));
+    } finally {
+      Object.defineProperty(window, 'location', { configurable: true, value: original });
+      open.mockRestore();
+    }
+  });
+
   it('sem link configurado, o logotipo não é clicável', async () => {
     await saveSettings({ ...DEFAULT_SETTINGS, logoLinkUrl: '' });
     await renderLoaded();

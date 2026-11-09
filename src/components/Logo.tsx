@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useAppData } from '../store/AppDataContext';
+import { openExternal } from '../services/externalLink';
 
 export function isWebUrl(url: string): boolean {
   return /^https?:\/\/\S+\.\S+/.test(url.trim());
@@ -21,6 +22,11 @@ export function Logo({ size = 'lg', onDark = false }: { size?: 'sm' | 'lg'; onDa
         href={settings.logoLinkUrl.trim()}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={(e) => {
+          // Abre por código: funciona no APK e quando a nova aba é bloqueada.
+          e.preventDefault();
+          void openExternal(settings.logoLinkUrl.trim());
+        }}
         aria-label={`${settings.institutionName}: conheça os cursos de graduação (abre o site em outra aba)`}
         className="inline-flex rounded-full transition-transform active:scale-95"
       >
