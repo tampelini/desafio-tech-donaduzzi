@@ -120,17 +120,19 @@ export function GameApp() {
   return (
     <div className="stage-backdrop">
       <main className="stage" onContextMenu={(e) => e.preventDefault()} onPointerDownCapture={secretTap}>
-        <TechBackground intensity={0.35} />
+        {/* Fundo estático atrás das telas claras: animá-lo forçaria redesenho contínuo. */}
+        <TechBackground intensity={0.35} animated={false} />
         {/* Faixa vinho no topo, como a barra superior do site. */}
         <div aria-hidden="true" className="absolute inset-x-0 top-0 z-10 h-[0.5rem] bg-gradient-to-r from-brand via-primary to-brand" />
-        <AnimatePresence mode="wait" initial={false}>
+        {/* Sem "wait": a tela nova surge enquanto a anterior some (esmaecimento cruzado). */}
+        <AnimatePresence initial={false}>
           <motion.div
             key={phase}
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {phase === 'attract' && <AttractScreen onStart={openInstructions} disabled={noQuestions} />}
             {phase === 'instructions' && <InstructionsScreen onBegin={begin} onBack={reset} />}

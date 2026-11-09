@@ -78,13 +78,14 @@ export function QuestionScreen({ session, revealed, onAnswer, onNext }: Props) {
         />
       </div>
 
-      <AnimatePresence mode="wait" initial={false}>
+      {/* popLayout: a pergunta que sai é tirada do fluxo e a nova entra ao mesmo tempo. */}
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.section
           key={question.id}
-          initial={{ x: 60, opacity: 0 }}
+          initial={{ x: 48, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -60, opacity: 0 }}
-          transition={{ duration: 0.28, ease: 'easeOut' }}
+          exit={{ x: -48, opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.8, 0.3, 1] }}
           className="mt-[0.8rem] flex min-h-0 flex-1 flex-col"
         >
           <h2 className={`glass rounded-3xl px-[1.5rem] font-display font-bold leading-tight text-heading transition-all ${promptSize}`}>{question.prompt}</h2>
@@ -140,9 +141,9 @@ export function QuestionScreen({ session, revealed, onAnswer, onNext }: Props) {
             <AnimatePresence>
               {answer && (
                 <motion.div
-                  initial={{ y: 30, opacity: 0 }}
+                  initial={{ y: 24, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
                   className="flex flex-col gap-[0.8rem]"
                 >
                   <div
@@ -161,7 +162,7 @@ export function QuestionScreen({ session, revealed, onAnswer, onNext }: Props) {
                     </p>
                     <p className="mt-[0.2rem] text-[1.1rem] leading-snug text-ink/90">{question.explanation}</p>
                   </div>
-                  <TouchButton onPress={onNext} lockMs={900} className="min-h-[4.4rem] w-full">
+                  <TouchButton onPress={onNext} lockMs={500} className="min-h-[4.4rem] w-full">
                     {isLast ? 'VER RESULTADO' : 'PRÓXIMA PERGUNTA'}
                   </TouchButton>
                 </motion.div>

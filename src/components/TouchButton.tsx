@@ -18,7 +18,7 @@ interface Props extends Omit<HTMLMotionProps<'button'>, 'onClick'> {
   lockMs?: number;
 }
 
-export function TouchButton({ variant = 'primary', onPress, lockMs = 700, className = '', children, disabled, ...rest }: Props) {
+export function TouchButton({ variant = 'primary', onPress, lockMs = 500, className = '', children, disabled, ...rest }: Props) {
   const lockedUntil = useRef(0);
   // Tamanho de texto padrão só quando quem usa não define o seu (evita classes em conflito).
   const textSize = /(^|\s)text-\[/.test(className) ? '' : 'text-[1.5rem]';

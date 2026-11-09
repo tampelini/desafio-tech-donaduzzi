@@ -1,7 +1,11 @@
 import { memo } from 'react';
 
-/** Trilhas de circuito animadas apenas com CSS (leve para Android intermediário). */
-export const TechBackground = memo(function TechBackground({ intensity = 1 }: { intensity?: number }) {
+/**
+ * Trilhas de circuito animadas apenas com CSS. `animated={false}` desenha as mesmas
+ * trilhas paradas: usado atrás das telas de jogo, onde a animação quase não aparece
+ * mas custaria redesenho a cada quadro.
+ */
+export const TechBackground = memo(function TechBackground({ intensity = 1, animated = true }: { intensity?: number; animated?: boolean }) {
   const paths = [
     'M0 220 H140 L190 270 H360',
     'M540 160 H420 L380 200 H250',
@@ -38,8 +42,8 @@ export const TechBackground = memo(function TechBackground({ intensity = 1 }: { 
             fill="none"
             stroke={i % 2 ? 'rgb(var(--c-accent))' : 'rgb(var(--c-primary))'}
             strokeWidth="2"
-            className="circuit-flow"
-            style={{ animationDelay: `${-i * 1.3}s` }}
+            className={animated ? 'circuit-flow' : undefined}
+            style={animated ? { animationDelay: `${-i * 1.3}s` } : { strokeDasharray: '6 14', strokeDashoffset: -i * 23 }}
           />
         </g>
       ))}
@@ -50,8 +54,8 @@ export const TechBackground = memo(function TechBackground({ intensity = 1 }: { 
           cy={cy}
           r="4.5"
           fill="rgb(var(--c-primary))"
-          className="blink-node"
-          style={{ animationDelay: `${-i * 0.7}s` }}
+          className={animated ? 'blink-node' : undefined}
+          style={animated ? { animationDelay: `${-i * 0.7}s` } : { opacity: 0.55 }}
         />
       ))}
     </svg>
