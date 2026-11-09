@@ -52,14 +52,19 @@ export interface GameRecord {
   answers: AnswerRecord[];
 }
 
-export type CourseIcon = 'database' | 'brain' | 'code' | 'monitor' | 'cpu' | 'graduation' | 'flask' | 'heart';
+export type CourseIcon =
+  | 'database' | 'brain' | 'code' | 'monitor' | 'cpu' | 'graduation' | 'flask' | 'heart'
+  | 'briefcase' | 'book' | 'dna' | 'pill' | 'users' | 'scale';
 
 export interface Course {
   id: string;
   name: string;
+  /** Opcional: sem descrição, o curso aparece só com o nome. */
   description: string;
   icon: CourseIcon;
   enabled: boolean;
+  /** Destaque: cartão grande no topo da tela de cursos (cursos de computação). */
+  highlight: boolean;
 }
 
 export interface ThemeColors {
@@ -93,6 +98,8 @@ export interface Settings {
   logo: string;
   /** Versão do logotipo para fundo escuro (vinho). Opcional. */
   logoOnDark: string;
+  /** Página aberta ao tocar no logotipo (ex.: cursos de graduação). Vazio = sem link. */
+  logoLinkUrl: string;
   colors: ThemeColors;
   questionsPerGame: number;
   distribution: Record<CategoryId, number>;

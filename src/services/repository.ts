@@ -35,6 +35,17 @@ export function mergeSettings(saved: Partial<Settings> | undefined): Settings {
   };
 }
 
+/**
+ * Cursos salvos por versões anteriores (sem o campo `highlight`): os existentes
+ * viram destaque, como eram exibidos, e os cursos novos do padrão são acrescentados.
+ */
+export function migrateCourses(saved: Course[]): Course[] {
+  if (saved.every((c) => typeof c.highlight === 'boolean')) return saved;
+  const upgraded = saved.map((c) => ({ ...c, highlight: typeof c.highlight === 'boolean' ? c.highlight : true }));
+  const ids = new Set(upgraded.map((c) => c.id));
+  return [...upgraded, ...structuredClone(DEFAULT_COURSES).filter((c) => !c.highlight && !ids.has(c.id))];
+}
+
 export async function loadAppData(): Promise<AppData> {
   const [settings, questions, courses] = await Promise.all([
     getKV<Partial<Settings>>(KEYS.settings).catch(() => undefined),
@@ -44,7 +55,7 @@ export async function loadAppData(): Promise<AppData> {
   return {
     settings: mergeSettings(settings),
     questions: Array.isArray(questions) ? questions : structuredClone(DEFAULT_QUESTIONS),
-    courses: Array.isArray(courses) ? courses : structuredClone(DEFAULT_COURSES),
+    courses: Array.isArray(courses) ? migrateCourses(courses) : structuredClone(DEFAULT_COURSES),
   };
 }
 

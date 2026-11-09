@@ -31,6 +31,7 @@ export function validateSettings(s: Settings): string[] {
   if (s.idleSeconds < 15) errors.push('Inatividade durante a partida: mínimo de 15 s.');
   if (s.coursesIdleSeconds < 5) errors.push('Inatividade na tela de cursos: mínimo de 5 s.');
   if (s.qrUrl && !/^https?:\/\/\S+\.\S+/.test(s.qrUrl)) errors.push('A URL do QR Code deve começar com http:// ou https://.');
+  if (s.logoLinkUrl && !/^https?:\/\/\S+\.\S+/.test(s.logoLinkUrl)) errors.push('O link do logotipo deve começar com http:// ou https://.');
   if (!s.resultTiers.some((t) => t.minPercent === 0)) errors.push('As mensagens de resultado precisam de uma faixa a partir de 0%.');
   return errors;
 }
@@ -118,6 +119,14 @@ export function SettingsTab() {
             )}
           </div>
         ))}
+        <div className="mt-4">
+          <Field
+            label="Link ao tocar no logotipo"
+            hint="Abre em outra aba (no APK, no navegador do aparelho); o jogo continua aberto. Deixe vazio para o logotipo não ser clicável."
+          >
+            <input type="url" placeholder="https://" value={s.logoLinkUrl} onChange={(e) => set('logoLinkUrl', e.target.value.trim())} />
+          </Field>
+        </div>
         <p className="mt-2 text-xs text-ink/60">
           Sem a versão para fundo vinho, o logotipo colorido aparece numa cápsula branca nas telas de início e resultado. Sem
           nenhum logotipo, aparece o nome da instituição em texto. Os arquivos ficam salvos no próprio aparelho.

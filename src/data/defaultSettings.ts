@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Logotipo oficial (public/assets), empacotado no app para funcionar offline.
   logo: './assets/logo-donaduzzi.png',
   logoOnDark: '',
+  logoLinkUrl: 'https://faculdadedonaduzzi.com.br/cursos-de-graduacao/',
   colors: DEFAULT_COLORS,
   questionsPerGame: 10,
   distribution: { faculdade: 3, ia: 2, dados: 2, engsoft: 1, ads: 1, inovacao: 1 },

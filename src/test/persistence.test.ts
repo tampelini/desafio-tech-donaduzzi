@@ -1,5 +1,5 @@
 import { __resetDBForTests, getAllGames, putGame } from '../services/db';
-import { getRecentQuestionIds, loadAppData, pushRecentGame, saveCourses, saveQuestions, saveSettings } from '../services/repository';
+import { getRecentQuestionIds, loadAppData, migrateCourses, pushRecentGame, saveCourses, saveQuestions, saveSettings } from '../services/repository';
 import { DEFAULT_SETTINGS } from '../data/defaultSettings';
 import { DEFAULT_QUESTIONS } from '../data/questions';
 import { gamesToCsv, questionStatsToCsv, summarize } from '../services/stats';
@@ -13,7 +13,8 @@ describe('persistência local (IndexedDB)', () => {
     const data = await loadAppData();
     expect(data.settings).toEqual(DEFAULT_SETTINGS);
     expect(data.questions).toHaveLength(60);
-    expect(data.courses).toHaveLength(4);
+    expect(data.courses).toHaveLength(10);
+    expect(data.courses.filter((c) => c.highlight).map((c) => c.id)).toEqual(['ciencia-de-dados', 'inteligencia-artificial', 'engenharia-de-software', 'ads']);
   });
 
   it('salva e recarrega configurações, perguntas e cursos', async () => {
@@ -40,6 +41,29 @@ describe('persistência local (IndexedDB)', () => {
     await pushRecentGame(['b'], 2);
     await pushRecentGame(['c'], 2);
     expect(await getRecentQuestionIds()).toEqual(['b', 'c']);
+  });
+});
+
+describe('migração dos cursos salvos', () => {
+  it('cursos da versão anterior viram destaque e os novos são acrescentados', () => {
+    const old = [
+      { id: 'ads', name: 'ADS editado', description: 'x', icon: 'monitor', enabled: true },
+      { id: 'meu-curso', name: 'Curso próprio', description: 'y', icon: 'cpu', enabled: false },
+    ] as unknown as Parameters<typeof migrateCourses>[0];
+    const result = migrateCourses(old);
+    expect(result.slice(0, 2).map((c) => [c.id, c.name, c.highlight])).toEqual([
+      ['ads', 'ADS editado', true],
+      ['meu-curso', 'Curso próprio', true],
+    ]);
+    expect(result.slice(2).map((c) => c.id)).toEqual([
+      'administracao', 'pedagogia', 'engenharia-de-bioprocessos-e-biotecnologia', 'farmacia', 'psicologia', 'direito',
+    ]);
+  });
+
+  it('não altera cursos já salvos na versão atual', async () => {
+    const current = [{ id: 'a', name: 'A', description: '', icon: 'cpu' as const, enabled: true, highlight: false }];
+    await saveCourses(current);
+    expect((await loadAppData()).courses).toEqual(current);
   });
 });
 

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { useAppData } from '../store/AppDataContext';
 import { gameReducer, initialGameState, sessionToRecord } from '../store/gameReducer';
 import { selectQuestions } from '../game/selection';
@@ -24,17 +24,26 @@ function enterFullscreen() {
     .catch(() => {});
 }
 
-/** Toques rápidos no canto superior esquerdo abrem o acesso administrativo (com PIN). */
-function useSecretCorner(taps = 5, windowMs = 3000) {
+/**
+ * Toques rápidos no canto superior esquerdo abrem o acesso administrativo (com PIN).
+ * Detectado pela posição do toque, sem camada por cima: o logotipo, que fica nesse
+ * canto na tela de pergunta, continua tocável.
+ */
+function useSecretCorner(taps = 5, windowMs = 3000, sizeRem = 4.5) {
   const hits = useRef<number[]>([]);
-  return useCallback(() => {
+  return useCallback((e: ReactPointerEvent<HTMLElement>) => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const x = (Number(e.clientX) || 0) - box.left;
+    const y = (Number(e.clientY) || 0) - box.top;
+    if (x > sizeRem * rem || y > sizeRem * rem) return;
     const now = Date.now();
     hits.current = [...hits.current.filter((t) => now - t < windowMs), now];
     if (hits.current.length >= taps) {
       hits.current = [];
       window.location.hash = '#/admin';
     }
-  }, [taps, windowMs]);
+  }, [taps, windowMs, sizeRem]);
 }
 
 export function GameApp() {
@@ -110,12 +119,10 @@ export function GameApp() {
 
   return (
     <div className="stage-backdrop">
-      <main className="stage" onContextMenu={(e) => e.preventDefault()}>
+      <main className="stage" onContextMenu={(e) => e.preventDefault()} onPointerDownCapture={secretTap}>
         <TechBackground intensity={0.35} />
         {/* Faixa vinho no topo, como a barra superior do site. */}
         <div aria-hidden="true" className="absolute inset-x-0 top-0 z-10 h-[0.5rem] bg-gradient-to-r from-brand via-primary to-brand" />
-        {/* Área invisível para acesso administrativo (5 toques em 3 s). */}
-        <div aria-hidden="true" className="absolute left-0 top-0 z-50 h-[4.5rem] w-[4.5rem]" onPointerDown={secretTap} />
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={phase}

@@ -56,6 +56,18 @@ describe('aplicação completa', () => {
     expect(await screen.findByText('Ciência de Dados')).toBeInTheDocument();
     expect(screen.getByText('Análise e Desenvolvimento de Sistemas')).toBeInTheDocument();
     expect(screen.getByText('SEU FUTURO COMEÇA AQUI!')).toBeInTheDocument();
+    // Todos os cursos de graduação, com os 4 de computação primeiro.
+    const titles = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(titles).toHaveLength(10);
+    expect(titles.slice(0, 4)).toEqual([
+      'Ciência de Dados',
+      'Inteligência Artificial',
+      'Engenharia de Software',
+      'Análise e Desenvolvimento de Sistemas',
+    ]);
+    expect(titles).toContain('Direito');
+    const more = screen.getByRole('heading', { name: 'Mais cursos de graduação' });
+    expect(more.compareDocumentPosition(screen.getByText('Administração')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // Sem URL cadastrada, nenhum QR Code é exibido (nada de URL fictícia).
     expect(screen.queryByRole('img', { name: /QR Code/ })).not.toBeInTheDocument();
   });
@@ -120,6 +132,23 @@ describe('aplicação completa', () => {
   });
 });
 
+describe('logotipo com link', () => {
+  it('abre a página de cursos de graduação em outra aba', async () => {
+    await renderLoaded();
+    const link = screen.getByRole('link', { name: /conheça os cursos de graduação/ });
+    expect(link).toHaveAttribute('href', 'https://faculdadedonaduzzi.com.br/cursos-de-graduacao/');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('sem link configurado, o logotipo não é clicável', async () => {
+    await saveSettings({ ...DEFAULT_SETTINGS, logoLinkUrl: '' });
+    await renderLoaded();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: DEFAULT_SETTINGS.institutionName })).toBeInTheDocument();
+  });
+});
+
 describe('painel administrativo', () => {
   async function openAdmin() {
     await renderLoaded();
@@ -140,8 +169,8 @@ describe('painel administrativo', () => {
 
   it('abre com acesso secreto (5 toques no canto) e gerencia perguntas', async () => {
     await renderLoaded();
-    const corner = document.querySelector('main > div[aria-hidden="true"].z-50') as HTMLElement;
-    for (let i = 0; i < 5; i++) fireEvent.pointerDown(corner);
+    const stage = document.querySelector('main.stage') as HTMLElement;
+    for (let i = 0; i < 5; i++) fireEvent.pointerDown(stage, { clientX: 10, clientY: 10 });
     await screen.findByText('Área administrativa');
     fireEvent.change(screen.getByLabelText('PIN'), { target: { value: '1234' } });
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));

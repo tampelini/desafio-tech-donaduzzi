@@ -103,6 +103,25 @@ html.kiosk img {
   position: relative;
 }
 
+/* Lista de cursos: única área com rolagem no jogo, com barra fina e visível. */
+.course-scroll {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-primary) / 0.5) transparent;
+}
+.course-scroll::-webkit-scrollbar {
+  width: 0.35rem;
+}
+.course-scroll::-webkit-scrollbar-thumb {
+  border-radius: 1rem;
+  background: rgb(var(--c-primary) / 0.5);
+}
+.course-scroll:focus-visible {
+  outline: 3px solid rgb(var(--c-primary));
+  outline-offset: 2px;
+}
+
 .text-gradient {
   background: linear-gradient(100deg, rgb(var(--c-heading)) 0%, rgb(var(--c-primary)) 60%, rgb(var(--c-accent)) 100%);
   -webkit-background-clip: text;

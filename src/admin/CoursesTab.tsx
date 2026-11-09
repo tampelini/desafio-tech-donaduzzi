@@ -14,7 +14,7 @@ export function CoursesTab() {
   useEffect(() => setDraft(courses), [courses]);
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(courses);
-  const invalid = draft.some((c) => !c.name.trim() || !c.description.trim());
+  const invalid = draft.some((c) => !c.name.trim());
 
   const patch = (id: string, p: Partial<Course>) => {
     setSaved(false);
@@ -33,7 +33,7 @@ export function CoursesTab() {
     <div className="flex flex-col gap-4">
       <Notice tone="info">
         Cadastre apenas cursos efetivamente ofertados. Não informe duração, modalidade, vagas ou autorização sem dados institucionais
-        confirmados. Cursos desativados não aparecem no totem.
+        confirmados. Cursos desativados não aparecem no totem. Os marcados como destaque aparecem primeiro, em cartões grandes; os demais vêm depois, em lista.
       </Notice>
       {saved && <Notice tone="ok">Cursos salvos.</Notice>}
       <Card
@@ -42,7 +42,7 @@ export function CoursesTab() {
           <div className="flex flex-wrap gap-2">
             <Btn
               onClick={() =>
-                setDraft((d) => [...d, { id: newId('curso-'), name: 'Novo curso', description: 'Descrição do curso.', icon: 'graduation', enabled: false }])
+                setDraft((d) => [...d, { id: newId('curso-'), name: 'Novo curso', description: '', icon: 'graduation', enabled: false, highlight: false }])
               }
             >
               <Plus className="h-5 w-5" aria-hidden="true" /> Adicionar curso
@@ -73,6 +73,9 @@ export function CoursesTab() {
                 <label className="flex items-center gap-2 font-semibold">
                   <input type="checkbox" checked={c.enabled} onChange={(e) => patch(c.id, { enabled: e.target.checked })} /> Exibir no totem
                 </label>
+                <label className="flex items-center gap-2 font-semibold">
+                  <input type="checkbox" checked={c.highlight} onChange={(e) => patch(c.id, { highlight: e.target.checked })} /> Destaque (cartão grande no topo)
+                </label>
                 <div className="ml-auto flex gap-2">
                   <Btn aria-label="Mover para cima" onClick={() => move(i, -1)} disabled={i === 0}>
                     <ArrowUp className="h-4 w-4" aria-hidden="true" />
@@ -100,7 +103,7 @@ export function CoursesTab() {
                 </Field>
               </div>
               <div className="mt-3">
-                <Field label="Descrição">
+                <Field label="Descrição (opcional)" hint="Sem descrição, o curso aparece só com o nome.">
                   <textarea rows={2} value={c.description} onChange={(e) => patch(c.id, { description: e.target.value })} />
                 </Field>
               </div>

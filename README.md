@@ -94,7 +94,8 @@ Sugestões para o Chrome: desligue a tradução automática e mantenha o app ins
 
 ## Painel administrativo
 
-- Acesso: toque **5 vezes em 3 segundos no canto superior esquerdo** do jogo (área invisível) ou acesse `…/#/admin`.
+- Acesso: toque **5 vezes em 3 segundos no canto superior esquerdo** da tela inicial (área invisível) ou acesse
+  `…/#/admin`. Nas demais telas o logotipo pode ocupar esse canto e abrir o site no primeiro toque.
 - **PIN padrão: `1234`. Troque-o na aba *Segurança* antes do primeiro evento.**
 - A sessão fecha após 5 min sem uso; 5 PINs errados bloqueiam o acesso por 1 minuto.
 - O PIN é uma barreira contra visitantes, não segurança forte: quem tiver o aparelho desbloqueado e ferramentas de
@@ -103,7 +104,7 @@ Sugestões para o Chrome: desligue a tradução automática e mantenha o app ins
 Abas:
 - **Perguntas:** filtrar por categoria/status, buscar, criar, editar, ativar/desativar, excluir, importar/exportar
   JSON (mesclar ou substituir) e restaurar as 60 originais. Tudo é validado antes de salvar.
-- **Cursos:** habilitar, editar, reordenar, adicionar e remover cursos da tela final.
+- **Cursos:** habilitar, editar, reordenar, marcar como destaque, adicionar e remover cursos da tela final.
 - **Configurações:** nomes e textos, logotipo, cores, perguntas por partida e por categoria, pontos, tempo por pergunta
   (ou desativado), inatividade, som, tela cheia, URL do QR Code e mensagens de resultado.
 - **Estatísticas:** partidas iniciadas/concluídas, média de pontos, tempo médio, histograma, acertos/erros/tempo
@@ -135,12 +136,20 @@ aparece numa cápsula branca; se houver uma versão do logotipo para fundo escur
 
 - **Logotipo:** já vem o oficial. Para trocar: *Configurações → Identidade* (colorido para telas brancas e, opcional,
   versão para fundo vinho).
+- **Link do logotipo:** tocar no logotipo (no topo de todas as telas) abre
+  <https://faculdadedonaduzzi.com.br/cursos-de-graduacao/> em outra aba; o jogo continua aberto na aba original e
+  volta sozinho à tela inicial por inatividade. No APK, o link abre no navegador do aparelho. Troque ou desative
+  (campo vazio) em *Configurações → Identidade → Link ao tocar no logotipo*. Com a fixação de tela/modo quiosque do
+  Android ativa, o sistema pode impedir a abertura do navegador.
 - **Cores:** *Configurações → Cores*, com os códigos do manual da marca. Os padrões ficam em
   `src/data/defaultSettings.ts`.
 - **QR Code:** cadastre a URL **oficial** dos cursos em *Configurações → Tela de cursos e QR Code*. Sem URL, o QR Code
   não aparece. O código é gerado no aparelho, sem serviço externo.
-- **Cursos:** pela aba *Cursos* ou, como padrão de fábrica, em `src/data/courses.ts`. Não informe duração,
-  modalidade, vagas ou autorização sem dados institucionais confirmados.
+- **Cursos:** pela aba *Cursos* ou, como padrão de fábrica, em `src/data/courses.ts`. Vêm os 10 cursos de graduação
+  de <https://faculdadedonaduzzi.com.br/cursos-de-graduacao/>. Os marcados como **destaque** (os 4 de computação)
+  aparecem primeiro, em cartões grandes com descrição; os demais aparecem depois, em lista, só com o nome, até que
+  se cadastre uma descrição. A lista rola com o dedo e mostra o aviso "Deslize para ver os N cursos". Não informe
+  duração, modalidade, vagas ou autorização sem dados institucionais confirmados.
 - **Perguntas padrão:** `src/data/questions.ts`. Formato de importação JSON (lista):
 
 ```json
@@ -196,7 +205,7 @@ scripts/       geração de ícones e verificação offline
 
 ## Testes
 
-`npm test` roda 43 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
+`npm test` roda 47 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
 sem duplicatas, embaralhamento preservando a correta, posições variadas, inativas excluídas, anti-repetição),
 pontuação e faixas de mensagem, tempo esgotado, conclusão, reinício por inatividade (partida e tela de cursos),
 persistência no IndexedDB, estatísticas/CSV, PIN e fluxos completos do jogo e do painel administrativo.
