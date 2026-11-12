@@ -32,6 +32,12 @@ export function mergeSettings(saved: Partial<Settings> | undefined): Settings {
     colors: { ...DEFAULT_SETTINGS.colors, ...(colors ?? {}) },
     distribution: { ...DEFAULT_SETTINGS.distribution, ...(saved.distribution ?? {}) },
     resultTiers: saved.resultTiers?.length ? saved.resultTiers : structuredClone(DEFAULT_SETTINGS.resultTiers),
+    // Configurações salvas antes da pesquisa existir recebem a pesquisa padrão.
+    survey: {
+      ...structuredClone(DEFAULT_SETTINGS.survey),
+      ...(saved.survey ?? {}),
+      items: saved.survey?.items?.length ? saved.survey.items : structuredClone(DEFAULT_SETTINGS.survey.items),
+    },
   };
 }
 

@@ -42,4 +42,12 @@ export const DEFAULT_SETTINGS: Settings = {
     { minPercent: 100, title: 'PONTUAÇÃO MÁXIMA!', message: 'INCRÍVEL! Você é um verdadeiro mestre do Desafio Tech!' },
   ],
   avoidRecentGames: 3,
+  survey: {
+    enabled: true,
+    allowSkip: true,
+    items: [
+      { id: 'biopark', prompt: 'O quanto você conhece o Biopark?', subject: 'o Biopark', category: null },
+      { id: 'faculdade', prompt: 'O quanto você conhece a Faculdade Donaduzzi?', subject: 'a Faculdade Donaduzzi', category: 'faculdade' },
+    ],
+  },
 };

@@ -8,10 +8,12 @@ import { putGame } from '../services/db';
 import { playSound, unlockAudio } from '../services/sound';
 import { applyUpdate, onUpdateAvailable } from '../services/pwa';
 import { newId } from '../services/files';
+import type { SurveyAnswers } from '../types';
 import { useIdle } from '../hooks/useIdle';
 import { TechBackground } from '../components/TechBackground';
 import { AttractScreen } from './AttractScreen';
 import { InstructionsScreen } from './InstructionsScreen';
+import { SurveyScreen } from './SurveyScreen';
 import { QuestionScreen } from './QuestionScreen';
 import { ResultScreen } from './ResultScreen';
 import { CoursesScreen } from './CoursesScreen';
@@ -90,7 +92,9 @@ export function GameApp() {
     dispatch({ type: 'OPEN_INSTRUCTIONS' });
   }, [settings.fullscreenOnStart]);
 
-  const begin = useCallback(() => {
+  const surveyOn = settings.survey.enabled && settings.survey.items.length > 0;
+
+  const begin = useCallback((survey?: SurveyAnswers | null) => {
     unlockAudio();
     const picked = selectQuestions(questions, {
       questionsPerGame: settings.questionsPerGame,
@@ -99,8 +103,14 @@ export function GameApp() {
     });
     if (picked.length === 0) return;
     playSound('start');
-    dispatch({ type: 'BEGIN', id: newId('g-'), questions: picked, now: Date.now() });
+    dispatch({ type: 'BEGIN', id: newId('g-'), questions: picked, now: Date.now(), survey });
   }, [questions, settings.questionsPerGame, settings.distribution]);
+
+  // Com a pesquisa ligada, as instruções levam à pesquisa; sem ela, direto ao desafio.
+  const afterInstructions = useCallback(() => {
+    if (surveyOn) dispatch({ type: 'OPEN_SURVEY' });
+    else begin();
+  }, [surveyOn, begin]);
 
   const answer = useCallback(
     (optionId: string | null) => {
@@ -135,7 +145,10 @@ export function GameApp() {
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {phase === 'attract' && <AttractScreen onStart={openInstructions} disabled={noQuestions} />}
-            {phase === 'instructions' && <InstructionsScreen onBegin={begin} onBack={reset} />}
+            {phase === 'instructions' && (
+              <InstructionsScreen onBegin={afterInstructions} beginLabel={surveyOn ? 'CONTINUAR' : 'COMEÇAR DESAFIO'} onBack={reset} />
+            )}
+            {phase === 'survey' && <SurveyScreen onBegin={begin} onBack={reset} />}
             {phase === 'question' && session && (
               <QuestionScreen session={session} revealed={state.revealed} onAnswer={answer} onNext={next} />
             )}

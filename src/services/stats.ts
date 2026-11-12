@@ -1,5 +1,6 @@
-import type { GameRecord, Question } from '../types';
+import type { GameRecord, Question, SurveyItem } from '../types';
 import { categoryLabel } from '../data/categories';
+import { SURVEY_SCALE, scaleLabel } from '../data/survey';
 
 export interface QuestionStats {
   questionId: string;
@@ -66,14 +67,99 @@ function toCsv(rows: unknown[][]): string {
 }
 const iso = (t: number | null) => (t ? new Date(t).toLocaleString('pt-BR') : '');
 
-export function gamesToCsv(games: readonly GameRecord[]): string {
-  const rows: unknown[][] = [['id', 'inicio', 'fim', 'concluida', 'pontuacao', 'acertos', 'total_perguntas', 'duracao_segundos']];
+export function gamesToCsv(games: readonly GameRecord[], surveyItems: readonly SurveyItem[] = []): string {
+  const rows: unknown[][] = [[
+    'id', 'inicio', 'fim', 'concluida', 'pontuacao', 'acertos', 'total_perguntas', 'duracao_segundos',
+    ...surveyItems.map((it) => `pesquisa_${it.id}`),
+  ]];
   for (const g of games) {
     rows.push([
       g.id, iso(g.startedAt), iso(g.endedAt), g.completed ? 'sim' : 'nao', g.score, g.correctCount, g.totalQuestions,
       g.durationMs !== null ? (g.durationMs / 1000).toFixed(1) : '',
+      ...surveyItems.map((it) => {
+        if (g.survey === undefined) return '';
+        if (g.survey === null) return 'pulou';
+        const r = g.survey[it.id];
+        return r ? `${r} - ${scaleLabel(r)}` : '';
+      }),
     ]);
   }
+  return toCsv(rows);
+}
+
+// ---------- Pesquisa "o quanto você conhece…" ----------
+
+export interface SurveyCross {
+  rating: number;
+  games: number;
+  correct: number;
+  total: number;
+}
+
+export interface SurveyItemStats {
+  item: SurveyItem;
+  responses: number;
+  /** Quantidade por nota (índice 0 = nota 1 … índice 4 = nota 5). */
+  counts: number[];
+  average: number;
+  /** Acerto nas perguntas da categoria do item, por nota de autoavaliação. */
+  cross: SurveyCross[];
+}
+
+export interface SurveySummary {
+  /** Partidas em que a pesquisa foi exibida. */
+  shown: number;
+  answered: number;
+  skipped: number;
+  items: SurveyItemStats[];
+}
+
+export function summarizeSurvey(
+  games: readonly GameRecord[],
+  items: readonly SurveyItem[],
+  questions: readonly Question[],
+): SurveySummary {
+  const categoryOf = new Map(questions.map((q) => [q.id, q.category]));
+  const withSurvey = games.filter((g) => g.survey !== undefined);
+  const answered = withSurvey.filter((g) => g.survey);
+  return {
+    shown: withSurvey.length,
+    answered: answered.length,
+    skipped: withSurvey.length - answered.length,
+    items: items.map((item) => {
+      const counts = SURVEY_SCALE.map(() => 0);
+      const cross: SurveyCross[] = SURVEY_SCALE.map((_, i) => ({ rating: i + 1, games: 0, correct: 0, total: 0 }));
+      let sum = 0;
+      for (const g of answered) {
+        const r = g.survey?.[item.id];
+        if (!r || r < 1 || r > 5) continue;
+        counts[r - 1]++;
+        sum += r;
+        if (item.category && g.completed) {
+          const mine = g.answers.filter((a) => categoryOf.get(a.questionId) === item.category);
+          if (mine.length) {
+            const c = cross[r - 1];
+            c.games++;
+            c.total += mine.length;
+            c.correct += mine.filter((a) => a.correct).length;
+          }
+        }
+      }
+      const responses = counts.reduce((a, b) => a + b, 0);
+      return { item, responses, counts, average: responses ? sum / responses : 0, cross };
+    }),
+  };
+}
+
+export function surveyToCsv(summary: SurveySummary): string {
+  const rows: unknown[][] = [['pergunta', 'resposta', 'quantidade', 'percentual']];
+  for (const s of summary.items) {
+    SURVEY_SCALE.forEach((label, i) => {
+      rows.push([s.item.prompt, `${i + 1} - ${label}`, s.counts[i], s.responses ? ((s.counts[i] / s.responses) * 100).toFixed(1) : '0']);
+    });
+    rows.push([s.item.prompt, 'média (1 a 5)', s.responses, s.average.toFixed(2)]);
+  }
+  rows.push(['(geral)', 'pularam a pesquisa', summary.skipped, summary.shown ? ((summary.skipped / summary.shown) * 100).toFixed(1) : '0']);
   return toCsv(rows);
 }
 

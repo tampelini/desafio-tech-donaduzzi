@@ -94,8 +94,8 @@ Sugestões para o Chrome: desligue a tradução automática e mantenha o app ins
 
 ## Painel administrativo
 
-- Acesso: toque **5 vezes em 3 segundos no canto superior esquerdo** da tela inicial (área invisível) ou acesse
-  `…/#/admin`. Nas demais telas o logotipo pode ocupar esse canto e abrir o site no primeiro toque.
+- Acesso: toque **5 vezes em 3 segundos no canto superior esquerdo** da tela (área invisível, funciona em qualquer
+  tela do jogo, inclusive a final) ou acesse `…/#/admin`. Nas demais telas o logotipo pode ocupar esse canto e abrir o site no primeiro toque.
 - **PIN padrão: `1234`. Troque-o na aba *Segurança* antes do primeiro evento.**
 - A sessão fecha após 5 min sem uso; 5 PINs errados bloqueiam o acesso por 1 minuto.
 - O PIN é uma barreira contra visitantes, não segurança forte: quem tiver o aparelho desbloqueado e ferramentas de
@@ -106,8 +106,10 @@ Abas:
   JSON (mesclar ou substituir) e restaurar as 60 originais. Tudo é validado antes de salvar.
 - **Cursos:** habilitar, editar, reordenar, marcar como destaque, adicionar e remover cursos da tela final.
 - **Configurações:** nomes e textos, logotipo, cores, perguntas por partida e por categoria, pontos, tempo por pergunta
-  (ou desativado), inatividade, som, tela cheia, URL do QR Code e mensagens de resultado.
-- **Estatísticas:** partidas iniciadas/concluídas, média de pontos, tempo médio, histograma, acertos/erros/tempo
+  (ou desativado), inatividade, som, tela cheia, URL do QR Code, mensagens de resultado e a pesquisa inicial
+  (ligar/desligar, permitir pular, textos e categoria usada na comparação).
+- **Estatísticas:** relatório da **pesquisa** (quantos responderam e pularam, distribuição e média de cada pergunta,
+  % de acerto nas perguntas da Faculdade por resposta dada), partidas iniciadas/concluídas, média de pontos, tempo médio, histograma, acertos/erros/tempo
   esgotado e respostas por pergunta, histórico com data e hora. Exportação em CSV (`;`, UTF-8, abre no Excel).
   Nenhum dado pessoal é coletado.
 
@@ -164,6 +166,19 @@ Categorias: `faculdade`, `ia`, `dados`, `engsoft`, `ads`, `inovacao`.
   `android/app/src/main/res/mipmap-*` (APK; use *Android Studio → New → Image Asset*). Os atuais são genéricos.
 - **Nome/ID do APK:** `capacitor.config.ts` (`appName`, `appId`).
 
+## Pesquisa antes do desafio
+
+Depois das instruções, o visitante responde com um toque **"O quanto você conhece o Biopark?"** e **"O quanto você
+conhece a Faculdade Donaduzzi?"**, numa escala de 1 a 5: *Nunca ouvi falar · Já ouvi falar · Conheço um pouco ·
+Conheço bem · Conheço muito bem*. O botão COMEÇAR DESAFIO libera quando as duas são respondidas; "Pular e começar"
+pode ser desligado no painel.
+
+No resultado, o jogo compara a resposta sobre a Faculdade com os acertos nas perguntas dessa categoria (ex.: "Você
+disse 'Já ouvi falar' sobre a Faculdade Donaduzzi e acertou 3 de 3 perguntas… Você conhece mais do que imaginava!").
+
+As respostas são anônimas, ficam salvas junto com a partida **no próprio aparelho** (funciona sem internet) e aparecem
+em *Estatísticas*. Com mais de um totem, exporte o CSV de cada um e junte as planilhas.
+
 ## Regras do jogo implementadas
 
 - 10 perguntas sorteadas por partida: 3 Faculdade, 2 IA, 2 Ciência de Dados, 1 Eng. Software, 1 ADS, 1 Inovação.
@@ -187,7 +202,7 @@ src/
   services/    IndexedDB, repositório, estatísticas/CSV, PIN, som, PWA, arquivos
   hooks/       inatividade e contagem regressiva
   components/  botões, temporizador, QR Code, fundo animado, confete…
-  screens/     Início, Instruções, Pergunta, Resultado, Cursos
+  screens/     Início, Instruções, Pesquisa, Pergunta, Resultado, Cursos
   admin/       painel administrativo
   test/        testes automatizados
 android/       projeto nativo (Capacitor)
@@ -205,8 +220,8 @@ scripts/       geração de ícones e verificação offline
 
 ## Testes
 
-`npm test` roda 49 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
+`npm test` roda 62 testes: banco de perguntas (60, IDs únicos, gabarito), sorteio (10 perguntas, distribuição,
 sem duplicatas, embaralhamento preservando a correta, posições variadas, inativas excluídas, anti-repetição),
 pontuação e faixas de mensagem, tempo esgotado, conclusão, reinício por inatividade (partida e tela de cursos),
-persistência no IndexedDB, estatísticas/CSV, PIN e fluxos completos do jogo e do painel administrativo.
+persistência no IndexedDB, estatísticas/CSV, pesquisa (fluxo, comparação, relatório, migração), PIN e fluxos completos do jogo e do painel administrativo.
 `npm run verify:offline` confere o pré-cache do Service Worker.

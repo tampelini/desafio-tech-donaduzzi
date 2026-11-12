@@ -3,7 +3,8 @@ import { Download, RefreshCw, Trash2 } from 'lucide-react';
 import type { GameRecord } from '../types';
 import { useAppData } from '../store/AppDataContext';
 import { clearGames, getAllGames } from '../services/db';
-import { gamesToCsv, questionStatsToCsv, summarize } from '../services/stats';
+import { gamesToCsv, questionStatsToCsv, summarize, summarizeSurvey } from '../services/stats';
+import { SurveyStats } from './SurveyStats';
 import { downloadText, timestampForFile } from '../services/files';
 import { formatDuration } from '../game/scoring';
 import { categoryLabel } from '../data/categories';
@@ -27,6 +28,7 @@ export function StatsTab() {
   }, []);
 
   const summary = useMemo(() => summarize(games ?? []), [games]);
+  const survey = useMemo(() => summarizeSurvey(games ?? [], settings.survey.items, questions), [games, settings.survey.items, questions]);
   const byId = useMemo(() => new Map(questions.map((q) => [q.id, q])), [questions]);
   const maxScore = settings.questionsPerGame * settings.pointsPerQuestion;
   const buckets = Array.from({ length: settings.questionsPerGame + 1 }, (_, i) => i * settings.pointsPerQuestion);
@@ -45,7 +47,7 @@ export function StatsTab() {
             <Btn onClick={() => void load()}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" /> Atualizar
             </Btn>
-            <Btn onClick={() => downloadText(`partidas-${stamp}.csv`, gamesToCsv(games), 'text/csv')}>
+            <Btn onClick={() => downloadText(`partidas-${stamp}.csv`, gamesToCsv(games, settings.survey.items), 'text/csv')}>
               <Download className="h-4 w-4" aria-hidden="true" /> CSV de partidas
             </Btn>
             <Btn onClick={() => downloadText(`perguntas-estatisticas-${stamp}.csv`, questionStatsToCsv(summary, questions), 'text/csv')}>
@@ -72,6 +74,8 @@ export function StatsTab() {
           <Stat label="Tempo médio" value={summary.completed ? formatDuration(summary.avgDurationMs) : '—'} />
         </div>
       </Card>
+
+      <SurveyStats summary={survey} enabled={settings.survey.enabled} />
 
       <Card title="Distribuição de pontuações (partidas concluídas)">
         <div className="flex h-40 items-end gap-1" role="img" aria-label="Histograma de pontuações">

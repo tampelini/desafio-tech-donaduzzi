@@ -4,7 +4,7 @@ import { useAppData } from '../store/AppDataContext';
 import { Logo } from '../components/Logo';
 import { TouchButton } from '../components/TouchButton';
 
-export function InstructionsScreen({ onBegin, onBack }: { onBegin: () => void; onBack: () => void }) {
+export function InstructionsScreen({ onBegin, onBack, beginLabel = 'COMEÇAR DESAFIO' }: { onBegin: () => void; onBack: () => void; beginLabel?: string }) {
   const { settings } = useAppData();
   const rules = [
     { Icon: ListChecks, text: `Responda a ${settings.questionsPerGame} perguntas.` },
@@ -53,7 +53,7 @@ export function InstructionsScreen({ onBegin, onBack }: { onBegin: () => void; o
       </ol>
 
       <TouchButton onPress={onBegin} className="mt-[1.4rem] min-h-[5.5rem] w-full text-[2rem]">
-        COMEÇAR DESAFIO
+        {beginLabel}
       </TouchButton>
     </div>
   );

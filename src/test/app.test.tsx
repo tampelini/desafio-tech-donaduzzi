@@ -12,8 +12,17 @@ async function renderLoaded() {
 
 async function startGame() {
   fireEvent.click(screen.getByRole('button', { name: /TOQUE PARA/ }));
-  fireEvent.click(await screen.findByRole('button', { name: 'COMEÇAR DESAFIO' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'CONTINUAR' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Pular e começar' }));
   await screen.findByText('Pergunta 1 de 10');
+}
+
+async function answerAll() {
+  for (let i = 1; i <= 10; i++) {
+    await screen.findByText(`Pergunta ${i} de 10`);
+    fireEvent.click(within(screen.getByRole('list', { name: 'Alternativas' })).getAllByRole('button')[0]);
+    fireEvent.click(await screen.findByRole('button', { name: i === 10 ? 'VER RESULTADO' : 'PRÓXIMA PERGUNTA' }));
+  }
 }
 
 beforeEach(async () => {
@@ -132,6 +141,62 @@ describe('aplicação completa', () => {
   });
 });
 
+describe('pesquisa antes do desafio', () => {
+  it('pede as duas notas, guarda na partida e compara no resultado', async () => {
+    await renderLoaded();
+    fireEvent.click(screen.getByRole('button', { name: /TOQUE PARA/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'CONTINUAR' }));
+    expect(await screen.findByText('Conte pra gente!')).toBeInTheDocument();
+    const start = screen.getByRole('button', { name: 'COMEÇAR DESAFIO' });
+    expect(start).toBeDisabled();
+
+    const biopark = screen.getByRole('radiogroup', { name: 'O quanto você conhece o Biopark?' });
+    const faculdade = screen.getByRole('radiogroup', { name: 'O quanto você conhece a Faculdade Donaduzzi?' });
+    fireEvent.click(within(biopark).getByRole('radio', { name: 'Conheço bem' }));
+    expect(within(biopark).getByRole('radio', { name: 'Conheço bem' })).toHaveAttribute('aria-checked', 'true');
+    expect(start).toBeDisabled();
+    fireEvent.click(within(faculdade).getByRole('radio', { name: 'Já ouvi falar' }));
+    expect(start).toBeEnabled();
+    fireEvent.click(start);
+
+    await answerAll();
+    expect(await screen.findByText('DESAFIO CONCLUÍDO!')).toBeInTheDocument();
+    expect(screen.getByTestId('self-check')).toHaveTextContent(
+      /Você disse “Já ouvi falar” sobre a Faculdade Donaduzzi e acertou \d de 3 perguntas/,
+    );
+    await waitFor(async () => {
+      const games = await getAllGames();
+      expect(games[0].survey).toEqual({ biopark: 4, faculdade: 2 });
+    });
+  });
+
+  it('pular registra a partida sem notas e sem comparação', async () => {
+    await renderLoaded();
+    await startGame();
+    await answerAll();
+    expect(await screen.findByText('DESAFIO CONCLUÍDO!')).toBeInTheDocument();
+    expect(screen.queryByTestId('self-check')).not.toBeInTheDocument();
+    await waitFor(async () => expect((await getAllGames())[0].survey).toBeNull());
+  });
+
+  it('desligada no painel, vai direto das instruções ao desafio', async () => {
+    await saveSettings({ ...DEFAULT_SETTINGS, survey: { ...DEFAULT_SETTINGS.survey, enabled: false } });
+    await renderLoaded();
+    fireEvent.click(screen.getByRole('button', { name: /TOQUE PARA/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'COMEÇAR DESAFIO' }));
+    expect(await screen.findByText('Pergunta 1 de 10')).toBeInTheDocument();
+  });
+
+  it('sem a opção de pular, o botão de pular não aparece', async () => {
+    await saveSettings({ ...DEFAULT_SETTINGS, survey: { ...DEFAULT_SETTINGS.survey, allowSkip: false } });
+    await renderLoaded();
+    fireEvent.click(screen.getByRole('button', { name: /TOQUE PARA/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'CONTINUAR' }));
+    await screen.findByText('Conte pra gente!');
+    expect(screen.queryByRole('button', { name: 'Pular e começar' })).not.toBeInTheDocument();
+  });
+});
+
 describe('logotipo com link', () => {
   it('abre a página de cursos de graduação em outra aba', async () => {
     await renderLoaded();
@@ -149,7 +214,7 @@ describe('logotipo com link', () => {
     await waitFor(() => expect(open).toHaveBeenCalledWith('https://faculdadedonaduzzi.com.br/cursos-de-graduacao/', '_blank'));
     expect(fake.opener).toBeNull();
     // O toque no logotipo não inicia o jogo.
-    expect(screen.queryByRole('button', { name: 'COMEÇAR DESAFIO' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'CONTINUAR' })).not.toBeInTheDocument();
     open.mockRestore();
   });
 

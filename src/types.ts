@@ -50,6 +50,30 @@ export interface GameRecord {
   totalQuestions: number;
   durationMs: number | null;
   answers: AnswerRecord[];
+  /**
+   * Pesquisa "o quanto você conhece…": nota de 1 a 5 por item.
+   * null = o visitante pulou; ausente = pesquisa desativada nesta partida.
+   */
+  survey?: SurveyAnswers | null;
+}
+
+/** Nota de 1 (nunca ouvi falar) a 5 (conheço muito bem), por ID do item. */
+export type SurveyAnswers = Record<string, number>;
+
+export interface SurveyItem {
+  id: string;
+  /** Pergunta exibida (ex.: "O quanto você conhece o Biopark?"). */
+  prompt: string;
+  /** Com artigo, para frases como "sobre o Biopark" (ex.: "o Biopark"). */
+  subject: string;
+  /** Categoria do quiz usada para comparar a autoavaliação com os acertos. */
+  category: CategoryId | null;
+}
+
+export interface SurveySettings {
+  enabled: boolean;
+  allowSkip: boolean;
+  items: SurveyItem[];
 }
 
 export type CourseIcon =
@@ -118,4 +142,6 @@ export interface Settings {
   resultTiers: ResultTier[];
   /** Quantas partidas recentes são consideradas para evitar repetição. */
   avoidRecentGames: number;
+  /** Pesquisa rápida antes do desafio. */
+  survey: SurveySettings;
 }

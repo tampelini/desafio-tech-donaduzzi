@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, RotateCcw, Trash2, Upload } from 'lucide-react';
-import type { CategoryId, ResultTier, Settings, ThemeColors } from '../types';
+import type { CategoryId, ResultTier, Settings, SurveyItem, ThemeColors } from '../types';
 import { useAppData } from '../store/AppDataContext';
 import { CATEGORIES } from '../data/categories';
 import { DEFAULT_COLORS, DEFAULT_SETTINGS } from '../data/defaultSettings';
@@ -32,6 +32,7 @@ export function validateSettings(s: Settings): string[] {
   if (s.coursesIdleSeconds < 5) errors.push('Inatividade na tela de cursos: mínimo de 5 s.');
   if (s.qrUrl && !/^https?:\/\/\S+\.\S+/.test(s.qrUrl)) errors.push('A URL do QR Code deve começar com http:// ou https://.');
   if (s.logoLinkUrl && !/^https?:\/\/\S+\.\S+/.test(s.logoLinkUrl)) errors.push('O link do logotipo deve começar com http:// ou https://.');
+  if (s.survey.enabled && s.survey.items.some((it) => !it.prompt.trim())) errors.push('Preencha o texto das perguntas da pesquisa.');
   if (!s.resultTiers.some((t) => t.minPercent === 0)) errors.push('As mensagens de resultado precisam de uma faixa a partir de 0%.');
   return errors;
 }
@@ -50,6 +51,8 @@ export function SettingsTab() {
     setStatus(null);
     setS((prev) => ({ ...prev, [key]: value }));
   };
+  const setSurveyItem = (i: number, p: Partial<SurveyItem>) =>
+    set('survey', { ...s.survey, items: s.survey.items.map((it, j) => (j === i ? { ...it, ...p } : it)) });
   const setTier = (i: number, p: Partial<ResultTier>) => set('resultTiers', s.resultTiers.map((t, j) => (j === i ? { ...t, ...p } : t)));
   const sum = Object.values(s.distribution).reduce((a, b) => a + (b || 0), 0);
   const errors = validateSettings(s);
@@ -188,6 +191,49 @@ export function SettingsTab() {
             </Field>
           ))}
         </div>
+      </Card>
+
+      <Card
+        title="Pesquisa antes do desafio"
+        actions={
+          <Btn onClick={() => set('survey', structuredClone(DEFAULT_SETTINGS.survey))}>
+            <RotateCcw className="h-4 w-4" aria-hidden="true" /> Textos padrão
+          </Btn>
+        }
+      >
+        <div className="mb-4 flex flex-wrap gap-x-8 gap-y-2">
+          <label className="flex items-center gap-2 font-semibold">
+            <input type="checkbox" checked={s.survey.enabled} onChange={(e) => set('survey', { ...s.survey, enabled: e.target.checked })} /> Mostrar a
+            pesquisa antes do desafio
+          </label>
+          <label className="flex items-center gap-2 font-semibold">
+            <input type="checkbox" checked={s.survey.allowSkip} onChange={(e) => set('survey', { ...s.survey, allowSkip: e.target.checked })} /> Permitir
+            pular
+          </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {s.survey.items.map((it, i) => (
+            <div key={it.id} className="grid gap-3 rounded-xl border border-primary/20 p-3">
+              <Field label={`Pergunta ${i + 1}`} hint="Resposta em escala: Nunca ouvi falar · Já ouvi falar · Conheço um pouco · Conheço bem · Conheço muito bem.">
+                <input value={it.prompt} onChange={(e) => setSurveyItem(i, { prompt: e.target.value })} />
+              </Field>
+              <Field label="Assunto, com artigo" hint={'Usado no resultado: "Você disse … sobre a Faculdade Donaduzzi".'}>
+                <input value={it.subject} onChange={(e) => setSurveyItem(i, { subject: e.target.value })} />
+              </Field>
+              <Field label="Comparar com as perguntas da categoria">
+                <select value={it.category ?? ''} onChange={(e) => setSurveyItem(i, { category: (e.target.value || null) as CategoryId | null })}>
+                  <option value="">Não comparar</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-sm text-ink/60">As respostas são anônimas e aparecem em Estatísticas.</p>
       </Card>
 
       <Card title="Totem">

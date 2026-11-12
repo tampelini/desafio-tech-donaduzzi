@@ -1,7 +1,7 @@
-import type { AnswerRecord, GameRecord, PreparedQuestion } from '../types';
+import type { AnswerRecord, GameRecord, PreparedQuestion, SurveyAnswers } from '../types';
 import { computeScore } from '../game/scoring';
 
-export type Phase = 'attract' | 'instructions' | 'question' | 'result' | 'courses';
+export type Phase = 'attract' | 'instructions' | 'survey' | 'question' | 'result' | 'courses';
 
 export interface Session {
   id: string;
@@ -11,6 +11,8 @@ export interface Session {
   index: number;
   answers: AnswerRecord[];
   questionShownAt: number;
+  /** Respostas da pesquisa inicial (null = pulou; ausente = sem pesquisa). */
+  survey?: SurveyAnswers | null;
 }
 
 export interface GameState {
@@ -22,7 +24,8 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'OPEN_INSTRUCTIONS' }
-  | { type: 'BEGIN'; id: string; questions: PreparedQuestion[]; now: number }
+  | { type: 'OPEN_SURVEY' }
+  | { type: 'BEGIN'; id: string; questions: PreparedQuestion[]; now: number; survey?: SurveyAnswers | null }
   | { type: 'ANSWER'; optionId: string | null; now: number }
   | { type: 'NEXT'; now: number }
   | { type: 'SHOW_COURSES' }
@@ -41,8 +44,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? { phase: 'instructions', session: null, revealed: false }
         : state;
 
+    case 'OPEN_SURVEY':
+      return state.phase === 'instructions' ? { ...state, phase: 'survey' } : state;
+
     case 'BEGIN':
-      if (state.phase !== 'instructions' || action.questions.length === 0) return state;
+      if ((state.phase !== 'instructions' && state.phase !== 'survey') || action.questions.length === 0) return state;
       return {
         phase: 'question',
         revealed: false,
@@ -54,6 +60,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           index: 0,
           answers: [],
           questionShownAt: action.now,
+          ...(action.survey !== undefined ? { survey: action.survey } : {}),
         },
       };
 
@@ -114,5 +121,6 @@ export function sessionToRecord(session: Session, pointsPerQuestion: number): Ga
     totalQuestions: session.questions.length,
     durationMs: session.endedAt !== null ? session.endedAt - session.startedAt : null,
     answers: session.answers,
+    ...(session.survey !== undefined ? { survey: session.survey } : {}),
   };
 }
